@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Migration Script Documentation
 
-## Getting Started
+This document provides instructions on how to use the `migrate.mjs` script to migrate product and category data from a REST API to a Sanity backend. This script also handles image uploads to Sanity.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Prerequisites
+
+1. **Environment Variables**:
+   Ensure that the following environment variables are set in your `.env.local` file:
+   ```env
+   NEXT_PUBLIC_SANITY_PROJECT_ID=<your-sanity-project-id>
+   NEXT_PUBLIC_SANITY_DATASET=<your-sanity-dataset> # e.g., "production"
+   NEXT_PUBLIC_SANITY_AUTH_TOKEN=<your-sanity-auth-token>
+   BASE_URL=<your-rest-api-base-url> # Default: "https://giaic-hackathon-template-08.vercel.app"
+   ```
+
+   Replace `<your-sanity-project-id>`, `<your-sanity-dataset>`, `<your-sanity-auth-token>`, and `<your-rest-api-base-url>` with the appropriate values.
+
+2. **Dependencies**:
+   Ensure the following dependencies are installed:
+   ```bash
+   npm install @sanity/client dotenv
+   ```
+
+3. **Sanity Setup**:
+   - Your Sanity project should have two schemas:
+     1. **Categories Schema**: Contains fields for title and image.
+     2. **Products Schema**: Contains fields for title, price, category (as a reference), image, and other product-related fields.
+
+---
+
+## Running the Script
+
+1. **Install Node.js**:
+   Make sure Node.js is installed on your system. You can check by running:
+   ```bash
+   node -v
+   ```
+
+2. **Execute the Script**:
+   Run the script using Node.js:
+   ```bash
+   node migrate.mjs
+   ```
+
+3. **Process Overview**:
+   The script performs the following actions:
+   - Fetches categories and products from the provided REST API.
+   - Uploads images for categories and products to Sanity.
+   - Creates or updates categories and products in the Sanity backend.
+
+---
+
+## Script Details
+
+### Key Functions
+
+1. **`uploadImageToSanity(imageUrl)`**:
+   - Fetches an image from the provided URL and uploads it to Sanity.
+   - Returns the asset ID of the uploaded image.
+
+   Example usage:
+   ```javascript
+   const imageId = await uploadImageToSanity('https://example.com/image.png');
+   ```
+
+2. **Category Migration**:
+   - Fetches categories from the REST API and uploads their images to Sanity.
+   - Maps old category IDs to new IDs for reference during product migration.
+
+3. **Product Migration**:
+   - Fetches products from the REST API and uploads their images to Sanity.
+   - Links each product to its corresponding category using the mapped IDs.
+
+---
+
+## Error Handling
+
+The script includes error handling to ensure smooth execution:
+- Logs errors during image uploads, API requests, or data creation in Sanity.
+- Skips problematic entries and continues with the migration.
+- Exits the process if critical errors occur (e.g., missing environment variables).
+
+---
+
+## Logs and Debugging
+
+- The script outputs progress logs to the console:
+  - Categories and products being migrated.
+  - Success or failure of each migration step.
+- Use these logs to identify and troubleshoot any issues.
+
+---
+
+## Example Output
+
+### Console Logs:
+```plaintext
+Starting data migration...
+Migrating category: Chairs
+Migrated category: Chairs (ID: abc123)
+Migrating product: Comfy Chair
+Migrated product: Comfy Chair (ID: xyz789)
+Data migration completed successfully!
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Notes
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+- Ensure that the REST API is accessible and returns valid data.
+- Verify that your Sanity schemas align with the data being migrated.
+- Test the script in a development environment before running it in production.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
